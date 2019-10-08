@@ -62,6 +62,7 @@ func NewNetworkMessenger(
 	outgoingPLB p2p.ChannelLoadBalancer,
 	peerDiscoverer p2p.PeerDiscoverer,
 	listenAddress string,
+	targetConnCount int,
 ) (*networkMessenger, error) {
 
 	if ctx == nil {
@@ -104,7 +105,7 @@ func NewNetworkMessenger(
 		return nil, err
 	}
 
-	p2pNode, err := createMessenger(lctx, true, outgoingPLB, peerDiscoverer)
+	p2pNode, err := createMessenger(lctx, true, outgoingPLB, peerDiscoverer, targetConnCount)
 	if err != nil {
 		log.LogIfError(h.Close())
 		return nil, err
@@ -118,6 +119,7 @@ func createMessenger(
 	withSigning bool,
 	outgoingPLB p2p.ChannelLoadBalancer,
 	peerDiscoverer p2p.PeerDiscoverer,
+	targetConnCount int,
 ) (*networkMessenger, error) {
 
 	pb, err := createPubSub(lctx, withSigning)
@@ -138,7 +140,7 @@ func createMessenger(
 		topics:         make(map[string]p2p.MessageProcessor),
 		outgoingPLB:    outgoingPLB,
 		peerDiscoverer: peerDiscoverer,
-		connMonitor:    newLibp2pConnectionMonitor(reconnecter),
+		connMonitor:    newLibp2pConnectionMonitor(reconnecter, targetConnCount),
 	}
 	lctx.connHost.Network().Notify(netMes.connMonitor)
 
